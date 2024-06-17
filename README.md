@@ -2,13 +2,16 @@ INSTALLATION
 ------------
 Unpack:
 
-    $ wget -O foo2zjs.tar.gz http://foo2zjs.rkkda.com/foo2zjs.tar.gz
-    $ tar zxf foo2zjs.tar.gz
+    $ git clone https://github.com/juanjosecas/foo2zjs.git
     $ cd foo2zjs
 
 Compile:
 
     $ make
+
+Or
+
+    $ make -j 10
 
 Install driver, foomatic XML files, PPD files, and extra files:
 
