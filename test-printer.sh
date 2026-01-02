@@ -82,6 +82,12 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
+# Get default printer name
+get_default_printer() {
+    # More portable approach - doesn't require GNU grep
+    lpstat -d 2>/dev/null | grep 'system default destination' | sed 's/.*: *//' | sed 's/ *$//'
+}
+
 # Check dependencies
 check_dependencies() {
     info "Checking required dependencies..."
@@ -158,8 +164,8 @@ check_printer_status() {
     local printer_name="$1"
     
     if [ -z "$printer_name" ]; then
-        # Get default printer
-        printer_name=$(lpstat -d 2>/dev/null | grep -oP '(?<=system default destination: ).*')
+        # Get default printer using helper function
+        printer_name=$(get_default_printer)
         if [ -z "$printer_name" ]; then
             error "No printer specified and no default printer configured"
         fi
@@ -211,8 +217,8 @@ send_test_page() {
     local printer_name="$1"
     
     if [ -z "$printer_name" ]; then
-        # Get default printer
-        printer_name=$(lpstat -d 2>/dev/null | grep -oP '(?<=system default destination: ).*')
+        # Get default printer using helper function
+        printer_name=$(get_default_printer)
         if [ -z "$printer_name" ]; then
             error "No printer specified and no default printer configured"
         fi
@@ -233,7 +239,7 @@ send_test_page() {
     elif [ -f "/usr/share/foo2zjs/testpage.ps" ]; then
         testpage="/usr/share/foo2zjs/testpage.ps"
     else
-        # Create a simple test page
+        # Create a simple test page with proper PostScript date handling
         warning "testpage.ps not found, creating a simple test page"
         testpage="/tmp/foo2zjs-testpage-$$.ps"
         cat > "$testpage" <<'TESTPAGE'
@@ -250,8 +256,7 @@ send_test_page() {
 72 680 moveto
 (If you can read this, your printer is working correctly.) show
 72 650 moveto
-(Date: ) show
-currenttime pop 24 60 60 mul mul div cvi =string cvs show
+(Test page generated successfully) show
 showpage
 %%EOF
 TESTPAGE
