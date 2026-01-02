@@ -5,11 +5,18 @@ Unpack:
     $ git clone https://github.com/juanjosecas/foo2zjs.git
     $ cd foo2zjs
 
+Check prerequisites (recommended):
+
+    $ make check-deps
+
+This will verify that all required build dependencies are installed and provide
+helpful installation instructions if any are missing.
+
 Compile:
 
     $ make
 
-Or
+Or for faster parallel compilation:
 
     $ make -j 10
 
@@ -28,6 +35,16 @@ Unplug and re-plug the USB printer
 If you use CUPS to manage your printers, you must restart cupsd:
 
     # make cups		OR	$ sudo make cups
+
+Test your printer installation:
+
+    $ test-printer.sh -a [printer-name]
+
+This will check dependencies, list printers, check status, and optionally
+send a test page. For more options:
+
+    $ test-printer.sh --help
+    $ make test-printer
 
 Test operation of programs. Skip this if you don't have the exact same
 version of Ghostscript that I have, Fedora ghostscript 8.71-16.fc14, because

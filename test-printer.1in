@@ -1,0 +1,103 @@
+.TH test-printer 1 "2026-01-02" "foo2zjs"
+.SH NAME
+test-printer.sh \- test installed printer configuration for foo2zjs driver
+.SH SYNOPSIS
+.B test-printer.sh
+.RI [ options ]
+.RI [ printer-name ]
+.SH DESCRIPTION
+.B test-printer.sh
+is a utility script to test and verify that printers using the foo2zjs
+driver suite are properly installed and configured. It can check printer
+status, list available printers, verify dependencies, and send test pages.
+.PP
+This script is particularly useful after installing or configuring a new
+printer to ensure that all components are working correctly.
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Display usage information and exit.
+.TP
+.B \-l, \-\-list
+List all installed printers on the system.
+.TP
+.B \-s, \-\-status
+Check the status of the specified printer (or default printer if none specified).
+Shows printer state, current jobs, and driver information.
+.TP
+.B \-t, \-\-test-page
+Send a test page to the specified printer (or default printer if none specified).
+.TP
+.B \-c, \-\-check-deps
+Check if all required dependencies are installed. This includes:
+.RS
+.IP \(bu 2
+CUPS (lpstat, lpr)
+.IP \(bu 2
+Ghostscript (gs)
+.IP \(bu 2
+Optional: usb_printerid
+.RE
+.TP
+.B \-a, \-\-all
+Run all tests: check dependencies, list printers, and check printer status.
+.TP
+.B \-v, \-\-verbose
+Enable verbose output for debugging.
+.SH ARGUMENTS
+.TP
+.I printer-name
+The name of the printer to test. If not specified, the system default
+printer will be used. Use the
+.B \-l
+option to see available printer names.
+.SH EXAMPLES
+.TP
+Check if all dependencies are installed:
+.nf
+test-printer.sh -c
+.fi
+.TP
+List all available printers:
+.nf
+test-printer.sh -l
+.fi
+.TP
+Check status of a specific printer:
+.nf
+test-printer.sh -s HP_LaserJet_1020
+.fi
+.TP
+Send a test page to the default printer:
+.nf
+test-printer.sh -t
+.fi
+.TP
+Run all tests on a specific printer:
+.nf
+test-printer.sh -a HP_LaserJet_1020
+.fi
+.SH EXIT STATUS
+.TP
+.B 0
+Success
+.TP
+.B 1
+Error occurred (printer not found, dependency missing, etc.)
+.SH FILES
+.TP
+.I ./testpage.ps
+Test page PostScript file in current directory
+.TP
+.I /usr/share/foo2zjs/testpage.ps
+Installed test page PostScript file
+.SH SEE ALSO
+.BR foo2zjs (1),
+.BR foo2zjs-wrapper (1),
+.BR lpstat (1),
+.BR lpr (1),
+.BR gs (1)
+.SH AUTHOR
+foo2zjs driver suite by Rick Richardson <rick.richardson@comcast.net>
+.br
+test-printer.sh utility added in 2026

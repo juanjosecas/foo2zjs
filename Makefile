@@ -272,6 +272,8 @@ SHELLS=		foo2zjs-wrapper foo2oak-wrapper foo2hp2600-wrapper \
 		foo2slx-wrapper foo2hiperc-wrapper foo2hbpl2-wrapper
 SHELLS+=	foo2zjs-pstops
 SHELLS+=	printer-profile
+# test-printer.sh is a source file, not generated
+TESTSCRIPTS=	test-printer.sh
 MANPAGES=	foo2zjs-wrapper.1 foo2zjs.1 zjsdecode.1
 MANPAGES+=	foo2oak-wrapper.1 foo2oak.1 oakdecode.1
 MANPAGES+=	foo2hp2600-wrapper.1 foo2hp.1
@@ -284,6 +286,7 @@ MANPAGES+=	foo2hbpl2-wrapper.1 foo2hbpl2.1 hbpldecode.1
 MANPAGES+=	gipddecode.1
 MANPAGES+=	foo2zjs-pstops.1 arm2hpdl.1 usb_printerid.1
 MANPAGES+=	printer-profile.1
+MANPAGES+=	test-printer.1
 LIBJBG	=	jbig.o jbig_ar.o
 BINPROGS=
 
@@ -378,7 +381,78 @@ JBGOPTS=-m 16 -d 0 -p 92	# Equivalent options for pbmtojbg
 #
 # The usual build rules
 #
-all:	$(PROGS) $(BINPROGS) $(SHELLS) getweb \
+
+# Declare phony targets
+.PHONY: all check-deps all-test all-done all-icc2ps all-osx-hotplug \
+	man doc clean install uninstall install-hotplug cups test \
+	test-printer
+
+# Check dependencies before building
+check-deps:
+	@echo "Checking build dependencies..."
+	@if ! type $(CC) >/dev/null 2>&1; then \
+	    echo ""; \
+	    echo "ERROR: $(CC) compiler is not installed!"; \
+	    echo ""; \
+	    echo "Please install the C compiler package:"; \
+	    echo "  Ubuntu/Debian: sudo apt-get install build-essential"; \
+	    echo "  Fedora/RHEL:   sudo yum install gcc make"; \
+	    echo "  macOS:         xcode-select --install"; \
+	    echo ""; \
+	    exit 1; \
+	fi
+	@if ! test -f /usr/include/stdio.h; then \
+	    echo ""; \
+	    echo "ERROR: Standard C headers are not installed!"; \
+	    echo ""; \
+	    echo "Please install development packages:"; \
+	    echo "  Ubuntu/Debian: sudo apt-get install build-essential"; \
+	    echo "  Fedora/RHEL:   sudo yum install glibc-devel"; \
+	    echo ""; \
+	    exit 1; \
+	fi
+	@if ! type gs >/dev/null 2>&1; then \
+	    echo ""; \
+	    echo "ERROR: Ghostscript (gs) is not installed!"; \
+	    echo ""; \
+	    echo "Ghostscript is required for printing:"; \
+	    echo "  Ubuntu/Debian: sudo apt-get install ghostscript"; \
+	    echo "  Fedora/RHEL:   sudo yum install ghostscript"; \
+	    echo "  macOS:         brew install ghostscript"; \
+	    echo ""; \
+	    exit 1; \
+	fi
+	@if ! type dc >/dev/null 2>&1; then \
+	    echo ""; \
+	    echo "ERROR: dc calculator is not installed!"; \
+	    echo ""; \
+	    echo "Please install dc:"; \
+	    echo "  Ubuntu/Debian: sudo apt-get install dc"; \
+	    echo "  Fedora/RHEL:   sudo yum install bc"; \
+	    echo ""; \
+	    exit 1; \
+	fi
+	@if ! dc -V >/dev/null 2>&1; then \
+	    echo ""; \
+	    echo "ERROR: GNU dc with -e option is required!"; \
+	    echo ""; \
+	    exit 1; \
+	fi
+ifeq ($(UNAME),Darwin)
+	@if ! type gsed >/dev/null 2>&1; then \
+	    echo ""; \
+	    echo "ERROR: GNU sed (gsed) is not installed!"; \
+	    echo ""; \
+	    echo "For macOS: sudo port install gsed"; \
+	    echo "       or: brew install gnu-sed"; \
+	    echo ""; \
+	    exit 1; \
+	fi
+endif
+	@echo "✓ All build dependencies are satisfied"
+	@echo ""
+
+all:	check-deps $(PROGS) $(BINPROGS) $(SHELLS) getweb \
 	all-icc2ps all-osx-hotplug man doc \
 	all-done
 
@@ -650,6 +724,7 @@ install-prog:
 	#
 	$(INSTALL) -d $(BIN)
 	$(INSTALL) -c $(PROGS) $(SHELLS) $(BIN)/
+	$(INSTALL) -c $(TESTSCRIPTS) $(BIN)/
 	if [ "$(BINPROGS)" != "" ]; then \
 	    $(INSTALL) -d $(UDEVBIN); \
 	    $(INSTALL) -c $(BINPROGS) $(UDEVBIN); \
@@ -1357,6 +1432,28 @@ icctest:
 		| sed '/Created:/d' > $$g.$$i.ps; \
 	    done; \
 	done
+
+#
+# Printer testing utility
+#
+test-printer:
+	@echo ""
+	@echo "=== Printer Testing Utility ==="
+	@echo ""
+	@echo "Use the test-printer.sh script to verify your printer installation:"
+	@echo ""
+	@echo "  Check dependencies:  make check-printer-deps"
+	@echo "  List printers:       ./test-printer.sh -l"
+	@echo "  Check status:        ./test-printer.sh -s [printer-name]"
+	@echo "  Send test page:      ./test-printer.sh -t [printer-name]"
+	@echo "  Run all tests:       ./test-printer.sh -a [printer-name]"
+	@echo ""
+	@echo "Or after installation:"
+	@echo "  test-printer.sh -a [printer-name]"
+	@echo ""
+
+check-printer-deps:
+	@./test-printer.sh --check-deps
 
 
 #
