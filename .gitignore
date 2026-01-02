@@ -1,0 +1,62 @@
+# Build artifacts - compiled binaries
+/foo2zjs
+/foo2oak
+/foo2hp
+/foo2xqx
+/foo2lava
+/foo2qpdl
+/foo2slx
+/foo2hiperc
+/foo2hbpl2
+/arm2hpdl
+/zjsdecode
+/oakdecode
+/xqxdecode
+/lavadecode
+/qpdldecode
+/opldecode
+/slxdecode
+/hipercdecode
+/hbpldecode
+/gipddecode
+/usb_printerid
+
+# Object files
+*.o
+
+# Generated wrapper scripts
+/foo2zjs-wrapper
+/foo2oak-wrapper
+/foo2hp2600-wrapper
+/foo2xqx-wrapper
+/foo2lava-wrapper
+/foo2qpdl-wrapper
+/foo2slx-wrapper
+/foo2hiperc-wrapper
+/foo2hbpl2-wrapper
+/foo2zjs-pstops
+/printer-profile
+/getweb
+
+# Generated man pages
+*.1
+!*.1in
+INSTALL
+
+# Generated utilities
+/icc2ps/foo2zjs-icc2ps
+
+# Temporary files
+xxx.*
+xxxomatic
+*.zc
+*.zm
+*.tar.gz
+*.prn
+sihp*.dl
+
+# Documentation build artifacts
+*.html
+!foo2*.html.in
+arch*.gif
+manual.pdf
