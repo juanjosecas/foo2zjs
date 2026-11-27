@@ -9,7 +9,8 @@ SRC=	icc2ps.c xgetopt.c
 LIB=	cmscam97.c cmscnvrt.c cmserr.c cmsgamma.c cmsgmt.c cmsintrp.c cmsio1.c \
 	cmslut.c cmsmatsh.c cmsmtrx.c cmsnamed.c cmspack.c cmspcs.c cmsps2.c \
 	cmssamp.c cmswtpnt.c cmsxform.c cmsio0.c cmsvirt.c
-CFLAGS = -O3 -DUSE_CUSTOM_SWAB
+CFLAGS ?= -O3
+CPPFLAGS += -DUSE_CUSTOM_SWAB
 INSTALL=install
 ifeq ($(UNAME),SunOS)
     INSTALL=/usr/ucb/install
@@ -21,7 +22,7 @@ endif
 all: foo2zjs-icc2ps man
 
 foo2zjs-icc2ps: $(SRC) $(LIB)
-	$(CC) $(CFLAGS) $(SRC) $(LIB) -lm -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(SRC) $(LIB) $(LDFLAGS) -lm -o $@
 
 install: all
 	$(INSTALL) -c foo2zjs-icc2ps $(BIN)
