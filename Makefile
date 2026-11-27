@@ -515,7 +515,7 @@ endif
 	# ... OK!
 	#
 
-all-done:
+all-done: check-deps $(PROGS) $(BINPROGS) $(SHELLS) getweb all-icc2ps all-osx-hotplug man doc
 	@echo
 	@echo "It is possible that certain products which can be built using this"
 	@echo "software module might form inventions protected by patent rights in"
@@ -1552,8 +1552,7 @@ man: $(MANPAGES) man-icc2ps man-osx-hotplug
 
 $(MANPAGES): macros.man includer-man
 
-man-icc2ps:
-	cd icc2ps; $(MAKE) man
+man-icc2ps: all-icc2ps
 
 man-osx-hotplug:
 	cd osx-hotplug; $(MAKE) man
@@ -1636,7 +1635,7 @@ install-doc: doc
 
 GROFF=/usr/local/test/bin/groff
 GROFF=groff
-manual.pdf: $(MANPAGES) icc2ps/foo2zjs-icc2ps.1 osx-hotplug/osx-hplj-hotplug.1
+manual.pdf: $(MANPAGES) man-icc2ps man-osx-hotplug
 	-$(GROFF) -t -man \
 	    `ls $(MANPAGES) \
 		icc2ps/foo2zjs-icc2ps.1 \
