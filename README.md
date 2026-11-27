@@ -1,187 +1,87 @@
-INSTALLATION
-------------
-Unpack:
+# foo2zjs — legacy printer drivers for Linux
 
-    $ git clone https://github.com/juanjosecas/foo2zjs.git
-    $ cd foo2zjs
+A maintained fork of the foo2zjs driver collection for printers using host-based protocols including ZjStream, XQX, QPDL, OAK, LAVA, SLX, HIPERC and HBPL. The goal is compatibility with modern Linux while preserving the original printer protocols.
 
-Check prerequisites (recommended):
+## Build from source
 
-    $ make check-deps
+On Fedora:
 
-This will verify that all required build dependencies are installed and provide
-helpful installation instructions if any are missing.
+```bash
+sudo dnf install gcc make glibc-devel ghostscript bc groff cups cups-devel cups-filters
+```
 
-Compile:
+On Debian/Ubuntu:
 
-    $ make
+```bash
+sudo apt install build-essential ghostscript dc groff cups libcups2-dev cups-filters
+```
 
-Or for faster parallel compilation:
+Package availability varies by distribution release. Before installation, verify that the CUPS filter `foomatic-rip` is available; if missing, locate the package providing it (on Fedora, use `dnf provides '*/foomatic-rip'`).
 
-    $ make -j 10
+```bash
+git clone https://github.com/juanjosecas/foo2zjs.git
+cd foo2zjs
+make check-deps
+make -j"$(nproc)"
+```
 
-Install driver, foomatic XML files, PPD files, and extra files:
+Build as an ordinary user. The ICC converter uses the bundled byte-swapping implementation to support modern compilers and in-place conversion.
 
-    $ su		OR	$ sudo make install
-    # make install
+## Installation and safety
 
-(Optional) Install hotplug (for HP LJ 1000/1005/1018/1020/P100[5678]/P1505):
+The current legacy installer writes into system directories and can remove existing PPD or Foomatic files. Prefer distribution packages when available. On a dedicated test system, inspect existing packages and the installation commands before proceeding:
 
-    $ su		OR	$ sudo make install-hotplug
-    # make install-hotplug
+```bash
+rpm -q foo2zjs
+command -v foo2zjs
+make -n install
+```
 
-Unplug and re-plug the USB printer
+On Debian/Ubuntu use `dpkg -l '*foo2zjs*'` instead of rpm. Do not overwrite distribution-managed files. Back up existing printing configuration before installing.
 
-If you use CUPS to manage your printers, you must restart cupsd:
+```bash
+sudo make install
+sudo systemctl restart cups.service
+lpinfo -m | grep -i foo2
+sudo lpinfo -v
+```
 
-    # make cups		OR	$ sudo make cups
+Use http://localhost:631 to add a printer with the matching model driver. Check `PPD/` for supported models. This driver requires a CUPS installation supporting legacy PPDs and filters.
 
-Test your printer installation:
+**Do not routinely run `make cups`, `make install-hotplug` or `make uninstall`.** These legacy targets modify system configuration or remove files beyond the driver's own installation. Safe replacement procedures are pending. DESTDIR is not yet safe for isolated packaging.
 
-    $ test-printer.sh -a [printer-name]
+## Firmware and USB printers
 
-This will check dependencies, list printers, check status, and optionally
-send a test page. For more options:
+Some HP LaserJet models (1000, 1005, 1018, 1020, P1005–P1008 and P1505) require firmware on every power cycle. The repository includes firmware images for several models. Do not substitute firmware from another model. The legacy hotplug installer can remove HPLIP rules; inspect existing firmware loading support before changing it.
 
-    $ test-printer.sh --help
-    $ make test-printer
+```bash
+lsusb
+sudo lpinfo -v
+journalctl -u cups.service -b --no-pager
+```
 
-Test operation of programs. Skip this if you don't have the exact same
-version of Ghostscript that I have, Fedora ghostscript 8.71-16.fc14, because
-it will not pass since different versions of Ghostscript generate different
-raster images:
+## Testing and troubleshooting
 
-    # make test
+```bash
+file foo2zjs foo2xqx icc2ps/foo2zjs-icc2ps
+ldd icc2ps/foo2zjs-icc2ps
+lpstat -t
+./test-printer.sh --help
+```
 
-Create printers (Ubuntu 5.10/6.06/6.10/7.04)
-    
-    $ sudo gnome-cups-manager
-    $ sudo make cups		# Ubuntu has a bug in gnome-cups-manager
+To print a test page, select the intended queue in CUPS. A successful build does not establish physical printer compatibility.
 
-NOTE: to edit a queue hit "Properties" (click right mouse button).
+The historical `make test` uses hashes tied to Ghostscript 8.71 on Fedora 14. Modern rasterization can differ without a driver defect. Do not downgrade Ghostscript to satisfy those hashes. Legacy groff table diagnostics may appear while generating the PDF manual.
 
-Create printers (Debian)
-Connect with a web browser to:
-    
-	http://localhost:631
+## Historical documentation
 
-And configure printer (HP example shown) to:
+- [README.in](README.in): original driver overview.
+- [INSTALL.in](INSTALL.in): historical installation and model-specific notes; commands may be obsolete.
+- [INSTALL.usb](INSTALL.usb): historical USB notes.
+- [INSTALL.osx](INSTALL.osx): historical macOS notes (not validated on modern macOS).
+- [COPYING](COPYING): license terms.
+- [ChangeLog](ChangeLog): historical changes.
 
-HP LaserJet 2600n, Foomatic + foo2zjs (en)
+## Maintenance policy
 
-Then edit "Manage Printers->Configure Printer" to suit you, such as "Page Size" or "Color Mode".
-
-UBUNTU NOTES
-------------
-
-Install build-essential, tix, foomatic-filters, groff, dc FIRST:
-
- 	$ sudo apt-get install build-essential tix foomatic-filters groff dc
-
-	$ wget -O foo2zjs.tar.gz http://foo2zjs.rkkda.com/foo2zjs.tar.gz
-	$ tar zxf foo2zjs.tar.gz
-	$ cd foo2zjs
-	$ sudo make uninstall
-	$ make
-	$ ./getweb 1020
-	    OR other printer
-	$ sudo make install install-hotplug cups
-
-	For 7.10 and later users:
-	    $ sudo system-config-printer
-
-	For 5.10/6.06/6.10/7.04 users:
-	    $ sudo gnome-cups-manager
-	    [configure ColorMode = Color if a color printer]
-	    $ sudo make cups
-
-	    Ubuntu has a bug in gnome-cups-manager with Color, so you must
-	    restart cups.  No other distro has this bug.
-
-    If that doesn't work, then fire up:
-	$ firefox http://localhost:631
-
-	And click on:
-	    Printers -> Set Printer Options -> Color Mode -> Color
-	Then click on:
-	    Set Printer Options
-
-
-
-HP SMART INSTALL NOTES
-----------------------
-    The printers HP LaserJet Pro P1102, HP LaserJet Pro CP1025, and simliar
-    models have a virtual CD-ROM (a fake USB CD drive) in USB mode.  You can
-    disable this three ways:
-
-    Method 1:
-	NOTE: this is a non-open-source method!
-	- Connect the printer to a Windows PC and turn it on.
-	  The fake CD-ROM appears on Windows.
-	- Insert the original Driver CD that ships with the printer
-	- Run SIUtility.exe or SIUtility64.exe from the UTIL folder and
-	  COMPLETELY DISABLE THIS "HP SMART INSTALL" FEATURE. 
-
-    Method 2:
-	- Install usb_modeswitch and usb_modeswitch-data from your distro's
-	  repository. I.E.:
-	    # yum install usb_modeswitch usb_modeswitch-data
-	  OR
-	    $ sudo apt-get install usb-modeswitch-data
-	  OR
-	    Surf to: http://www.draisberghof.de/usb_modeswitch/
-	- Power cycle the printer.
-
-    Method 3:
-	NOTE: this is a non-open-source method!
-	- Execute:
-	    $ wget http://hplipopensource.com/hplip-web/smartinstall/\
-		SmartInstallDisable-Tool.run
-	    $ sh SmartInstallDisable-Tool.run
-
-PSUTILS AND 2/4-UP CAPABILITY
------------------------------
-    If you would like to use the 2-up/4-up capability, then you need to
-    get and install Angus Duggan's excellent psutils package.  You can
-    find the source code for psutils here:
-
-	http://knackered.knackered.org/angus/psutils/index.html
-
-    Or an RPM here:
-
-	http://rpmfind.net/linux/rpm2html/search.php?query=psutils
-
-CUSTOM PAGE SIZE
-----------------
-
-    Append "PageSize=Custom.MMMxNNNin" to the lpr command.  E.G.
-
-    $ lpr -P hp2600 -o media=letter -o PageSize=Custom.4x6in ~/testpage.ps
-    $ lpr -P hp2600 -o media=letter -o PageSize=Custom.10x15cm ~/testpage.ps
-    $ lpr -P hp1020 -o media=letter -o PageSize=Custom.4x6in ~/testpage.ps
-
-    Or, use a GUI that allows the custom size parameters, e.g.
-    "evince" - PostScript and PDF File Viewer.
-
-LANDSCAPE ORIENTATION
----------------------
-    This driver just prints Postscript and doesn't know what the
-    orientation is (*).  Other higher level programs format your
-    data into Postscript, e.g CUPS. 
-
-    The CUPS -o landscape option will rotate the page 90 degrees to print
-    in landscape orientation:
-
-    $ lp -o landscape filename
-    $ lpr -o landscape filename
-
-    (*) except for N-up printing, because psnup (from psutils) requires it!
-
-SET DEFAULT MEDIA WITH CUPS
----------------------------
-    $ sudo
-    # lpoptions -o media=A4
-	-OR-
-    # lpoptions -o media=Letter
-
-
+Preserve protocol encoders, firmware, color profiles and model-specific settings unless a reproducible defect requires a change. Prioritize build portability, safe installation, regression tests and documentation. Modern Linux builds and physical printer tests must be validated separately.
