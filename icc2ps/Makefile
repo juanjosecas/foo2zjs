@@ -9,7 +9,7 @@ SRC=	icc2ps.c xgetopt.c
 LIB=	cmscam97.c cmscnvrt.c cmserr.c cmsgamma.c cmsgmt.c cmsintrp.c cmsio1.c \
 	cmslut.c cmsmatsh.c cmsmtrx.c cmsnamed.c cmspack.c cmspcs.c cmsps2.c \
 	cmssamp.c cmswtpnt.c cmsxform.c cmsio0.c cmsvirt.c
-CFLAGS=	-O3
+CFLAGS = -O3 -DUSE_CUSTOM_SWAB
 INSTALL=install
 ifeq ($(UNAME),SunOS)
     INSTALL=/usr/ucb/install

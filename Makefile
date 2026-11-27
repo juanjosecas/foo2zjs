@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := all
+
 LANG=C
 UNAME := $(shell uname)
 MACH := $(shell uname -m | sed 's/i.86/x86_32/')
