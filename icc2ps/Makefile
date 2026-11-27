@@ -21,7 +21,7 @@ endif
 all: foo2zjs-icc2ps man
 
 foo2zjs-icc2ps: $(SRC) $(LIB)
-	$(CC) $(CFLAGS) $(SRC) $(LIB) -lm -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(SRC) $(LIB) $(LDFLAGS) -lm -o $@
 
 install: all
 	$(INSTALL) -c foo2zjs-icc2ps $(BIN)
